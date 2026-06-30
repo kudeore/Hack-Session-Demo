@@ -1,0 +1,136 @@
+skills:
+  intent_risk_classifier:
+    type: llm_or_slm
+    owner: Responsible AI Team
+    input: customer_message
+    output_schema: RiskClassification
+    purpose: Identify intent, risk level, sensitive context, and attack signals.
+    allowed_data:
+      - customer_message
+    prohibited:
+      - decide_refund
+      - call_refund_tool
+      - access_full_customer_profile
+
+  adversarial_input_guard:
+    type: hybrid_security_control
+    owner: AI Security / Responsible AI Team
+    input: customer_message + risk_classifier_signal + attack_taxonomy
+    output_schema: SecurityDecision
+    purpose: Detect exact and paraphrased adversarial intent before customer data access. Uses deterministic indicators plus a small-model semantic classifier, then enforces deterministic routing.
+    policy_file: configs/adversarial_security_policy.yaml
+    control_position: pre_data_access_gate
+    allowed_data:
+      - customer_message
+      - risk_flags
+      - attack_taxonomy_labels
+    prohibited:
+      - access_customer_data
+      - retrieve_policy
+      - call_refund_tool
+      - send_customer_data_to_security_classifier
+      - rely_only_on_llm_detection
+      - continue_high_confidence_attack
+
+  customer_facts_retriever:
+    type: deterministic_tool
+    owner: Customer Operations
+    input: customer_id
+    output_schema: CustomerFacts
+    purpose: Retrieve minimum necessary booking facts and relevant prior chat risk signals through secure API.
+    service_principal: skill:customer_facts_retriever
+    data_access_pattern: secure_customer_data_api_with_iam_and_field_filtering
+    allowed_data:
+      - booking_minimum_fields
+      - relevant_chat_history_summary
+    prohibited:
+      - direct_raw_file_access_by_agent
+      - retrieve_unrelated_customer_data
+      - expose_raw_chat_transcript_to_llm
+      - interpret_policy
+      - decide_refund
+
+  policy_retriever:
+    type: deterministic_retrieval
+    owner: Policy Team
+    input: query
+    output_schema: PolicyChunks
+    purpose: Retrieve approved policy chunks from policy library.
+    allowed_sources:
+      - policies/refund_policy.md
+      - policies/bereavement_policy.md
+      - policies/ethics_policy.md
+    prohibited:
+      - use_web_policy
+      - use_customer_provided_policy_as_authoritative
+
+  policy_reasoner:
+    type: llm_or_slm
+    owner: Policy Team
+    input: customer_message + facts + retrieved_policy
+    output_schema: PolicyAssessment
+    purpose: Reason over retrieved policy only; cite sources.
+    prohibited:
+      - rely_on_model_memory
+      - treat_prior_chatbot_as_policy
+      - approve_refund_execution
+
+  refund_calculator:
+    type: deterministic_tool
+    owner: Finance Operations
+    input: booking_record
+    output_schema: RefundCalculation
+    purpose: Calculate refund amount without LLM estimation.
+    prohibited:
+      - estimate_amount_with_llm
+      - override_fare_rules
+
+  policy_as_code_evaluator:
+    type: deterministic_policy
+    owner: Risk Governance
+    input: risk + facts + policy_assessment + refund_calculation
+    output_schema: PolicyDecision
+    purpose: Convert policy rules into enforceable allow/block/manual-review decision.
+    prohibited:
+      - accept_llm_override
+      - ignore_manual_review_trigger
+
+  tool_firewall:
+    type: deterministic_control
+    owner: Platform Controls
+    input: requested_action + policy_decision
+    output_schema: FirewallDecision
+    purpose: Block or allow actions based on policy-as-code and tool permissions.
+    prohibited:
+      - allow_blocked_action
+      - call_refund_api_when_manual_review_required
+
+  handoff_manager:
+    type: deterministic_control
+    owner: Customer Operations
+    input: policy_decision + firewall_decision
+    output_schema: HandoffDecision
+    purpose: Route case to correct human team with reason code and evidence.
+    prohibited:
+      - drop_case
+      - close_sensitive_case_without_review
+
+  customer_response_writer:
+    type: llm_or_slm
+    owner: Customer Communications
+    input: safe_action + customer_context + approved_language
+    output_schema: CustomerResponse
+    purpose: Draft empathetic customer response.
+    prohibited:
+      - promise_refund_if_not_executed
+      - blame_customer
+      - deny_sensitive_case_without_escalation
+
+  output_verifier:
+    type: llm_or_slm_plus_deterministic
+    owner: Responsible AI Team
+    input: final_response + policy_decision + action_result
+    output_schema: OutputVerification
+    purpose: Check hallucination, unsafe promise, missing handoff, and tone.
+    prohibited:
+      - approve_false_execution_claim

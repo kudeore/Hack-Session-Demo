@@ -1,0 +1,27 @@
+agent:
+  id: AGENT-REFUND-CASE-MANAGER-001
+  name: Refund Case Manager Agent
+  role: >
+    Orchestrates approved skills to help customers with refund-related requests.
+    It does not own policy, execute refunds directly, or bypass tool controls.
+  autonomy_level: bounded
+  action_authority: limited
+  uses_skill_registry: true
+  allowed:
+    - classify_intent_and_risk
+    - call_customer_facts_skill
+    - call_policy_retrieval_skill
+    - call_policy_reasoning_skill
+    - call_refund_calculation_skill
+    - call_policy_as_code_skill
+    - call_tool_firewall_skill
+    - call_handoff_skill
+    - call_response_writer_skill
+    - call_output_verifier_skill
+  prohibited:
+    - direct_refund_execution
+    - policy_override
+    - use_chat_history_as_policy
+    - ignore_handoff_trigger
+    - create_false_refund_confirmation
+    - hide_human_support

@@ -1,0 +1,33 @@
+policy_as_code:
+  auto_refund_prepare_allowed_if:
+    - customer_verified
+    - direct_booking
+    - travel_not_started
+    - flexible_fare
+    - refund_amount_below_threshold
+    - original_payment_method
+    - no_manual_review_trigger
+    - no_prior_misinformation_flag
+    - no_sensitive_context
+    - no_prompt_injection
+    - no_adversarial_guard_restriction
+
+  manual_review_required_if:
+    - bereavement_or_vulnerability
+    - prior_misinformation_flag
+    - completed_travel
+    - partially_flown
+    - third_party_booking
+    - refund_amount_threshold
+    - policy_conflict
+    - prompt_injection_detected
+    - complaint_or_legal_signal
+    - adversarial_guard_manual_review
+
+  prohibited_actions:
+    - execute_refund_without_required_approval
+    - promise_refund_without_tool_confirmation
+    - deny_sensitive_case_without_handoff
+    - use_prior_chatbot_answer_as_policy
+    - override_policy_from_prompt
+    - continue_after_high_confidence_adversarial_input

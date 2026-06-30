@@ -1,0 +1,5 @@
+{"customer_id": "C001", "booking_id": "BKG1001", "channel": "chatbot", "timestamp": "2026-06-16T10:15:00", "message": "Eligibility depends on fare rules and ticket status."}
+{"customer_id": "C002", "booking_id": "BKG1002", "channel": "chatbot", "timestamp": "2026-05-16T09:20:00", "message": "You can claim bereavement refund within 90 days after travel."}
+{"customer_id": "C003", "booking_id": "BKG1003", "channel": "chatbot", "timestamp": "2026-06-11T14:05:00", "message": "For third-party bookings, contact your travel agent."}
+{"customer_id": "C004", "booking_id": "BKG1004", "channel": "human_agent", "timestamp": "2026-06-12T18:30:00", "message": "Partial travel may require manual review."}
+{"customer_id": "C005", "booking_id": "BKG1005", "channel": "chatbot", "timestamp": "2026-06-17T08:00:00", "message": "Refund depends on fare rules and original payment method."}

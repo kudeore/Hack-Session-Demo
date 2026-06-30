@@ -1,0 +1,6 @@
+customer_id,customer_name,booking_id,booking_channel,travel_status,fare_type,payment_method,ticket_amount,refund_amount_estimate,customer_verified
+C001,Asha Mehta,BKG1001,direct,not_started,flexible,card,400,380,true
+C002,Rohan Shah,BKG1002,direct,completed,non_refundable,card,650,0,true
+C003,Meera Rao,BKG1003,third_party,not_started,standard,travel_agent,500,0,true
+C004,Arjun Nair,BKG1004,direct,partially_flown,standard,card,800,200,true
+C005,Nisha Kapoor,BKG1005,direct,not_started,non_refundable,voucher,300,0,true

@@ -1,0 +1,26 @@
+ai_system:
+  id: AI-CX-REFUND-AGENT-001
+  name: Governed Refund Case Manager Agent
+  version: 0.3-modular-langgraph
+  framework: LangGraph
+  model_supported:
+    - openai_llm
+    - ollama_slm
+  deployment_status: reference_implementation
+  use_case_id: UC-CX-REFUND-001
+  llm_or_slm_skills:
+    - intent_risk_classifier
+    - policy_reasoner
+    - customer_response_writer
+    - output_verifier
+  deterministic_skills:
+    - customer_facts_retriever
+    - policy_retriever
+    - refund_calculator
+    - policy_as_code_evaluator
+    - tool_firewall
+    - handoff_manager
+    - audit_logger
+  operating_principle: >
+    The model can reason and draft, but cannot directly execute regulated actions.
+    Regulated action must pass deterministic policy-as-code and tool firewall checks.

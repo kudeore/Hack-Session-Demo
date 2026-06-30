@@ -1,0 +1,31 @@
+handoff_matrix:
+  - condition: prior_misinformation_flag
+    team: Customer Remediation Review
+    priority: high
+    reason_code: AI_PRIOR_MISINFO_REVIEW
+    sla_hours: 24
+  - condition: bereavement_or_vulnerability
+    team: Bereavement Support Desk
+    priority: high
+    reason_code: SENSITIVE_CUSTOMER_CONTEXT
+    sla_hours: 24
+  - condition: third_party_booking
+    team: Third Party Booking Support
+    priority: medium
+    reason_code: THIRD_PARTY_BOOKING_LIMITATION
+    sla_hours: 48
+  - condition: travel_status_completed
+    team: Refund Exceptions Team
+    priority: medium
+    reason_code: COMPLETED_TRAVEL_EXCEPTION
+    sla_hours: 48
+  - condition: prompt_injection_detected
+    team: AI Security Review
+    priority: high
+    reason_code: PROMPT_INJECTION_ATTEMPT
+    sla_hours: 24
+  - condition: refund_amount_threshold
+    team: Refund Approval Team
+    priority: medium
+    reason_code: HIGH_VALUE_REFUND_REVIEW
+    sla_hours: 48

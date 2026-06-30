@@ -1,0 +1,32 @@
+use_case:
+  id: UC-CX-REFUND-001
+  name: Customer Refund and Bereavement Support
+  status: approved_for_reference
+  business_owner: Customer Operations
+  risk_owner: Conduct and Operational Risk
+  ai_owner: Responsible AI Team
+  customer_facing: true
+  uses_customer_data: true
+  uses_sensitive_context: true
+  can_trigger_financial_action: true
+  inherent_risk: high
+  target_residual_risk: medium
+  autonomy_allowed: bounded_only
+  allowed_customer_outcomes:
+    - retrieve_customer_facts
+    - explain_policy_with_grounding
+    - prepare_low_risk_refund_pending_confirmation
+    - create_manual_review_case
+  prohibited_customer_outcomes:
+    - promise_refund_without_validation
+    - deny_sensitive_case_without_escalation
+    - execute_refund_from_llm_decision
+    - treat_chatbot_history_as_policy
+  mandatory_controls:
+    - skill_registry
+    - policy_as_code
+    - grounded_policy_reasoning
+    - tool_firewall
+    - handoff_matrix
+    - output_verification
+    - audit_logging

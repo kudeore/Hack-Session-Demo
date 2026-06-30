@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Governance Stack Presentation Engine</title>
+    <style>
+        :root {
+            --bg-color: #f8fafc;
+            --line-color: #cbd5e1;
+            --blue-core: #0f172a;
+            --blue-gate: #1e40af;
+            --red-issue: #b91c1c;
+            --green-control: #15803d;
+            --purple-tag: #6d28d9;
+            --amber-caveat: #b45309;
+        }
+        
+        body {
+            margin: 0;
+            padding: 30px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: #334155;
+        }
+
+        /* Presentation Dashboard Header */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .title-block {
+            padding-left: 15px;
+            border-left: 5px solid var(--blue-gate);
+        }
+        .title-block h1 { margin: 0; font-size: 24px; color: var(--blue-core); }
+        .title-block p { margin: 5px 0 0 0; font-size: 13px; color: #64748b; }
+
+        /* Mode Switcher Buttons */
+        .view-switcher {
+            display: flex;
+            background: #e2e8f0;
+            padding: 4px;
+            border-radius: 8px;
+            gap: 4px;
+        }
+        .switch-btn {
+            border: none;
+            background: transparent;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #475569;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .switch-btn.active {
+            background: white;
+            color: var(--blue-gate);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        /* View Panels Toggle State */
+        .view-panel { display: none; }
+        .view-panel.active { display: block; }
+
+        /* Code View Styling */
+        .code-container {
+            background: #0f172a;
+            color: #f8fafc;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.2);
+            overflow-x: auto;
+        }
+        .code-container pre {
+            margin: 0;
+            font-family: 'Fira Code', Consolas, Monaco, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        /* Interactive Mind Map Elements */
+        .tree-container {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 24px;
+        }
+        .gate-node {
+            display: flex;
+            align-items: center;
+            background: var(--blue-gate);
+            padding: 14px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            color: white;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            min-width: 320px;
+            cursor: pointer;
+            user-select: none;
+        }
+        .gate-group {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            border-left: 2px dashed var(--line-color);
+            padding-left: 25px;
+            margin-left: 20px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr;
+            gap: 30px;
+            width: 100%;
+        }
+        .column { display: flex; flex-direction: column; gap: 12px; }
+        .column-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        .column-title.runtime { color: var(--blue-gate); }
+        .column-title.issue { color: var(--red-issue); }
+        .column-title.control { color: var(--green-control); }
+
+        .card {
+            background: white;
+            padding: 14px;
+            border-radius: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            border-left: 4px solid var(--line-color);
+        }
+        .card.runtime { border-left-color: var(--blue-gate); background-color: #fafafa; }
+        .card.issue { border-left-color: var(--red-issue); }
+        .card.control { border-left-color: var(--green-control); }
+        .card-title { font-weight: 600; font-size: 14px; color: #1e293b; }
+        .card-desc { font-size: 12px; color: #64748b; margin-top: 4px; line-height: 1.4; }
+        
+        /* Cleaned Code Snippet Boxes inside Cards */
+        .card-code-block {
+            background: #1e293b;
+            color: #38bdf8;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, monospace;
+            font-size: 11px;
+            margin-top: 8px;
+            white-space: pre-line; /* Correctly transforms markdown raw line-breaks into actual display line breaks */
+            line-height: 1.4;
+        }
+
+        .tag-container { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .gov-tag {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            background: #f3e8ff;
+            color: var(--purple-tag);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+        .caveat-card {
+            grid-column: span 3;
+            background: #fffbeb;
+            border: 1px solid #fef3c7;
+            border-left: 4px solid var(--amber-caveat);
+            padding: 12px 16px;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #92400e;
+        }
+        .caveat-card strong { color: var(--amber-caveat); }
+
+        .collapsed + .gate-group { display: none !important; }
+        .gate-node::before { content: "▼  "; font-size: 10px; }
+        .gate-node.collapsed::before { content: "▶  "; }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-header">
+        <div class="title-block">
+            <h1>Systemic AI Agent Governance Architecture</h1>
+            <p>Verification Gates 0 through 9 Control Architecture Mapping</p>
+        </div>
+        
+        <div class="view-switcher">
+            <button class="switch-btn active" onclick="switchView('interactive-view', this)">Interactive Mind Map</button>
+            <button class="switch-btn" onclick="switchView('code-view', this)">View Core Source Code</button>
+        </div>
+    </div>
+
+    <div id="interactive-view" class="view-panel active">
+        <div class="tree-container">
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 0 — Request Context & Traceability</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Initiation Profile</div>
+                            <div class="card-desc">“Before the agent thinks, we create an enterprise request context.”</div>
+                            <div class="card-code-block">run_case()
+RequestContextFactory.create()
+AuditLogger.append()
+checkpoint()</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Blind Execution Sinks</div>
+                            <div class="card-desc">• No request reconstruction capabilities<br>• No trace ID tracking<br>• No idempotency keys<br>• No native workflow version telemetry</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">Traceability Foundation</div>
+                            <div class="card-desc">• Trace ID / request ID mapping<br>• Immutable audit trail capture<br>• Active workflow version log<br>• Checkpointing & idempotency keys</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">Monitoring & Assurance</span>
+                                <span class="gov-tag">AI Management System</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 1 — Governance Boundary Loading</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Boundary Load</div>
+                            <div class="card-desc">“This is where the agent gets its operating boundary.”</div>
+                            <div class="card-code-block">load_registries_node()
+use_case_registry.yaml
+agent_card.yaml
+skill_registry.yaml</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Shadow AI Implementations</div>
+                            <div class="card-desc">• Undefined execution mandate<br>• No proof of organizational ownership<br>• No documented scope boundaries<br>• Ungoverned skill inventory creep</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">Structural Anchoring</div>
+                            <div class="card-desc">• Acceptable-use boundary rules<br>• Systemic bounded autonomy parameters<br>• Live model agent card enforcement<br>• Registries for validation and tools</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">Principles & Risk Appetite</span>
+                                <span class="gov-tag">AI Management System</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="caveat-card">
+                        <strong>Important SME Caveat:</strong> These artifacts are not all enforcement by themselves. They are the governance record. Enforcement happens later through policy-as-code, tool firewall, handoff, verifier, and audit.
+                    </div>
+                </div>
+            </div>
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 2 — Intent & Risk Classification</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Dynamic Categorization</div>
+                            <div class="card-desc">“The naive agent treats every request like a conversation. The governed agent first asks: what kind of request is this, and how risky is it?”</div>
+                            <div class="card-code-block">risk_node()
+IntentRiskClassifierSkill.run()</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Flat-Path Hazard Processing</div>
+                            <div class="card-desc">• Completely missing intent-based routing<br>• Lack of client customer-impact classification<br>• High-exposure cases (complaints, refunds, adversarial probes) mixed in general queues</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">Segregated Traffic Routing</div>
+                            <div class="card-desc">• Intent classifier<br>• Risk classifier<br>• Customer-impact classification</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">Regulation & Compliance</span>
+                                <span class="gov-tag">AI Risk Lifecycle</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="caveat-card">
+                        <strong>Key SME Insight:</strong> In agentic systems, classification is not just analytics. It decides which controls activate.
+                    </div>
+                </div>
+            </div>
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 3 — Pre-Data-Access Adversarial Guard</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Edge Security Shielding</div>
+                            <div class="card-desc">“The most important design choice: we check for adversarial input before retrieving customer data.”</div>
+                            <div class="card-code-block">adversarial_guard_node()
+AdversarialInputGuardSkill.run()
+route_after_adversarial_guard()
+security_handoff_node()</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Probabilistic Input Exposure</div>
+                            <div class="card-desc">• Reliance on easily bypassed prompt-only defense<br>• System instruction extraction attacks<br>• Unauthorized back-end data exfiltration<br>• Malicious API tool escalation exploits</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">Boundary Threat Interception</div>
+                            <div class="card-desc">• Prompt injection detection<br>• Prompt extraction detection<br>• Data exfiltration detection<br>• Tool escalation detection<br>• Security handoff before data access</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">Security & Adversarial Controls</span>
+                                <span class="gov-tag">Agentic Runtime Governance</span>
+                                <span class="gov-tag">Monitoring & Assurance</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="caveat-card">
+                        <strong>Live Demo Structural Path Run:</strong><br>
+                        • <em>Normal request</em> &rarr; continue to customer facts<br>
+                        • <em>Attack request</em> &rarr; security handoff before data access<br>
+                        <strong>Punchline:</strong> The governed agent does not merely tell the LLM to be careful. It changes the execution path.
+                    </div>
+                </div>
+            </div>
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 4 — Data & Context Boundary</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Context Window Minimization</div>
+                            <div class="card-desc">“The LLM does not get the customer record. It gets a minimized, purpose-bound fact set.”</div>
+                            <div class="card-code-block">CustomerFactsRetrieverSkill.run()
+SecureCustomerDataAPI.authorize()
+SecureCustomerDataAPI._filter_fields()
+create_llm_safe_facts()
+read_relevant_chat_summary()
+iam_policy.yaml</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Context Poisoning & Leakage</div>
+                            <div class="card-desc">• Full booking record exposed<br>• PII overexposure risks<br>• Raw customer chat history dump vectors<br>• Internal notes exposed / Agent has broad data access</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">Data Minimization Filters</div>
+                            <div class="card-desc">• Least-privilege data access<br>• IAM boundary rules configuration<br>• Skill identity parameters verification<br>• Automated generation of LLM-safe facts<br>• Strict data minimization execution</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">Agentic Runtime Governance</span>
+                                <span class="gov-tag">Regulation & Compliance</span>
+                                <span class="gov-tag">Security & Adversarial Controls</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="caveat-card">
+                        <strong>Enterprise Core Message:</strong> For governed agents, context is a control surface.
+                    </div>
+                </div>
+            </div>
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 5 — Policy Grounding & Deterministic Decisioning</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Decoupled Processing Architecture</div>
+                            <div class="card-desc">“The LLM can reason, but it does not become the policy authority.”</div>
+                            <div class="card-code-block">PolicyRetrieverSkill.run()
+PolicyReasonerSkill.run()
+RefundCalculatorSkill.run()
+PolicyAsCodeEvaluatorSkill.run()
+policy_manifest.yaml
+policy_rules.yaml
+refund_policy.md</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Probabilistic Judgment Errors</div>
+                            <div class="card-desc">• LLM-led policy interpretation adjustments<br>• Hallucinated validation refund rules<br>• Prior chatbot misinformation treated as entitlement authority<br>• Refund amount guessed by model / No rule trace</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">Deterministic Logic Execution</div>
+                            <div class="card-desc">• Approved policy retrieval routines<br>• Regulated policy reasoning constraints<br>• Deterministic refund calculation structures<br>• Policy-as-code decision mapping<br>• Manual review trigger thresholds<br>• Versioned log evidence registries</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">AI Risk Lifecycle</span>
+                                <span class="gov-tag">Regulation & Compliance</span>
+                                <span class="gov-tag">Monitoring & Assurance</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="caveat-card">
+                        <strong>Architecture Authority Breakdown:</strong><br>
+                        • <strong>LLM:</strong> Helps interpret language and communicate parameters.<br>
+                        • <strong>Policy-as-code:</strong> Decides eligibility / review requirements via static matching routes.<br>
+                        • <strong>Calculator:</strong> Determines the financial value amount explicitly.<br>
+                        <strong>Strong Execution Line:</strong> We did not remove the LLM. We removed the LLM from being the final authority.
+                    </div>
+                </div>
+            </div>
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 6 — Tool Firewall & Action Boundary</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Out-of-Band Verification</div>
+                            <div class="card-desc">“Even if the agent proposes an action, the tool firewall decides whether the action is allowed.”</div>
+                            <div class="card-code-block">ToolFirewallSkill.run()
+tool_firewall_node()
+handoff_node()</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Unbounded API Execution</div>
+                            <div class="card-desc">• Excessive autonomous agent authority limits<br>• Downstream API tool misuse vectors<br>• Direct refund execution bypass attempts<br>• Weak pre-action constraint parameter checking</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">Execution Firewalls</div>
+                            <div class="card-desc">• Tool firewall verification blocks<br>• Enforced zero direct refund execution conditions<br>• Runtime pre-action validation controls<br>• Safe graceful alternative operations</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">Agentic Runtime Governance</span>
+                                <span class="gov-tag">Security & Adversarial Controls</span>
+                                <span class="gov-tag">Regulation & Compliance</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="caveat-card">
+                        <strong>Maturity Roadmap Note:</strong> In this version, the firewall enforces the action boundary in code. A future hardening step is to dynamically load and enforce <code>tool_permissions.yaml</code> rather than keeping some rules inside the firewall logic.
+                    </div>
+                </div>
+            </div>
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 7 — Handoff & Human Review</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Escalation Management</div>
+                            <div class="card-desc">“Human review is not a polite suggestion. It is a deterministic route triggered by risk conditions.”</div>
+                            <div class="card-code-block">HandoffManagerSkill.run()
+handoff_node()
+security_handoff_node()
+reserve_or_reuse_case()</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Automated Sensitivity Blindspots</div>
+                            <div class="card-desc">• LLM independently decides whether to escalate parameters<br>• Highly sensitive operational metrics handled via automation loops<br>• Vulnerable edge cases (bereavement/active disputes) processed without judgment inputs<br>• Structural duplicate review case recording tracking errors</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">HITL Routing Networks</div>
+                            <div class="card-desc">• Automated manual review routing<br>• Security operations handoff tracking structures<br>• Transaction tracking system idempotency rules<br>• Safe architectural operational fallback pipelines</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">Regulation & Compliance</span>
+                                <span class="gov-tag">Agentic Runtime Governance</span>
+                                <span class="gov-tag">Monitoring & Assurance</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="caveat-card">
+                        <strong>Maturity Metrics Disclaimer:</strong> This is a reference handoff path. A production version would capture real approver ID, approval timestamp, decision outcome, and override reason.
+                    </div>
+                </div>
+            </div>
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 8 — Response Writing & Output Verification</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Outbound Quality Assurance</div>
+                            <div class="card-desc">“Even after upstream controls, the final customer message still needs assurance.”</div>
+                            <div class="card-code-block">CustomerResponseWriterSkill.run()
+OutputVerifierSkill.run()
+verifier_node()</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Unchecked Output Hazards</div>
+                            <div class="card-desc">• Loose or illegal text refund overpromises<br>• Aggressive or structurally unsafe denials text payload<br>• Lack of regulated legal human support phrases<br>• Hallucinated structural policy parameters exposed to client interface</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">Output Alignment Guards</div>
+                            <div class="card-desc">• Integrated customer communication ethics checking<br>• Dynamic runtime output verification filters<br>• Automated template safe rewrite engines<br>• Hardened human review tracking language inclusion</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">Principles & Risk Appetite</span>
+                                <span class="gov-tag">Monitoring & Assurance</span>
+                                <span class="gov-tag">Regulation & Compliance</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="caveat-card">
+                        <strong>Linguistic Control Metric:</strong> The final response payload is also a critical corporate risk surface.
+                    </div>
+                </div>
+            </div>
+
+            <div class="gate-node" onclick="toggleLayer(this)">Gate 9 — Cross-Cutting Assurance Wrapper</div>
+            <div class="gate-group">
+                <div class="grid-container">
+                    <div class="column">
+                        <div class="column-title runtime">Runtime Context & Execution</div>
+                        <div class="card runtime">
+                            <div class="card-title">Orchestration Abstraction</div>
+                            <div class="card-desc">“Every skill runs through a common runtime wrapper, so audit and checkpoints are not optional per function.”</div>
+                            <div class="card-code-block">run_skill()
+AuditLogger.append()
+AuditEmitter.emit()
+checkpoint()
+WorkflowStateStore.save_checkpoint()</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title issue">Naive Agent Issues Solved</div>
+                        <div class="card issue">
+                            <div class="card-title">Fragmented Observability Logs</div>
+                            <div class="card-desc">• Ephemeral tracing profiles with weak system audit trails<br>• Missing step-level process sequence indexes<br>• Weak logic execution history<br>• Missing runtime verification evidence logs</div>
+                        </div>
+                    </div>
+                    <div class="column">
+                        <div class="column-title control">Governed Architectural Controls</div>
+                        <div class="card control">
+                            <div class="card-title">Systemic Assurance Wrapper</div>
+                            <div class="card-desc">• Enforced skill invocation audit logs<br>• Chronological system sequence logging metrics<br>• Native framework step checkpointing options<br>• Repeatable end-to-end evidence trail data</div>
+                            <div class="tag-container">
+                                <span class="gov-tag">Monitoring & Assurance</span>
+                                <span class="gov-tag">AI Management System</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="code-view" class="view-panel">
+        <div class="code-container">
+            <pre>
+&lt;!-- Enterprise Target Blueprint Pipeline Schema Example --&gt;
+&lt;architecture_meta&gt;
+    &lt;engine_version&gt;2026.2.4&lt;/engine_version&gt;
+    &lt;framework_layer&gt;Systemic Active Runtime Enforcement&lt;/framework_layer&gt;
+&lt;/architecture_meta&gt;
+
+[Initialization Sequence Configuration]
+- Execute Guard Tiers 0 & 1
+- Evaluate Dynamic Context Payload
+- Intercept External Traces via Input Attack Perimeter
+- Run Policy-As-Code Syntactical Boundary Matrix
+- Trigger Hardware/App HITL Escalation Routes
+- Log Final Verification State Hash to Long-Term Archive Sinks
+            </pre>
+        </div>
+    </div>
+
+    <script>
+        // Core layer layout display toggler
+        function toggleLayer(element) {
+            element.classList.toggle('collapsed');
+        }
+
+        // View Navigator Function - seamlessly goes between interactive mind map layouts and code blocks
+        function switchView(panelId, buttonElement) {
+            // Remove active classes everywhere
+            document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active'));
+            document.querySelectorAll('.switch-btn').forEach(btn => btn.classList.remove('active'));
+            
+            // Activate current targets
+            document.getElementById(panelId).classList.add('active');
+            buttonElement.classList.add('active');
+        }
+    </script>
+</body>
+</html>

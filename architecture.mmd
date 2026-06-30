@@ -1,0 +1,29 @@
+flowchart LR
+    A[Input dictionary] --> N1[Naive Agent]
+    A --> G1[Governed Agent]
+
+    subgraph Naive[Naive Agent Path]
+      N1 --> N2[Direct full booking lookup]
+      N2 --> N3[Direct raw chat lookup]
+      N3 --> N4[Raw data + tool catalog in LLM prompt]
+      N4 --> N5[Real Gemini call]
+      N5 --> N6[Model recommends response + action]
+      N6 --> N7[Naive executor simulation]
+      N7 --> N8[Minimal local audit]
+    end
+
+    subgraph Governed[Governed Agent Path]
+      G1 --> G2[Trace context]
+      G2 --> G3[Risk classifier]
+      G3 --> G4[Hybrid adversarial guard]
+      G4 --> G5{Safe before data access?}
+      G5 -- No --> G6[Security handoff]
+      G5 -- Yes --> G7[Registered skill identity]
+      G7 --> G8[Secure API + IAM + field filtering]
+      G8 --> G9[LLM-safe facts]
+      G9 --> G10[Policy retrieval]
+      G10 --> G11[Policy-as-code]
+      G11 --> G12[Tool firewall]
+      G12 --> G13[Handoff / response writer / verifier]
+      G13 --> G14[Trace-aware audit]
+    end

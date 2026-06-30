@@ -1,0 +1,65 @@
+tools:
+  read_booking:
+    mode: read_only
+    risk_level: low
+    allowed_skills:
+      - customer_facts_retriever
+
+  read_chat_history:
+    mode: read_only
+    risk_level: medium
+    allowed_skills:
+      - customer_facts_retriever
+    restrictions:
+      - only_relevant_booking_conversation
+      - mask_unnecessary_pii
+
+  retrieve_policy:
+    mode: read_only
+    risk_level: low
+    allowed_skills:
+      - policy_retriever
+
+  calculate_refund:
+    mode: deterministic_calculation
+    risk_level: medium
+    allowed_skills:
+      - refund_calculator
+    restrictions:
+      - no_llm_amount_estimation
+
+  create_manual_review_case:
+    mode: write
+    risk_level: medium
+    allowed_skills:
+      - handoff_manager
+    required_conditions:
+      - customer_verified
+      - manual_review_required_or_high_risk
+
+  prepare_refund_pending_confirmation:
+    mode: write_prepare_only
+    risk_level: medium
+    allowed_skills:
+      - tool_firewall
+    required_conditions:
+      - auto_refund_allowed
+      - no_manual_review_trigger
+      - customer_confirmation_required
+
+  execute_refund:
+    mode: write_execute
+    risk_level: high
+    allowed_skills:
+      - no_direct_executor
+    blocked_by_default: true
+    production_required_conditions:
+      - customer_verified
+      - customer_confirmation_received
+      - standard_eligibility_confirmed
+      - no_manual_review_trigger
+      - no_prior_misinformation_flag
+      - no_sensitive_context
+      - no_policy_conflict
+      - refund_amount_below_threshold
+      - step_up_authentication_passed

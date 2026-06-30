@@ -1,0 +1,51 @@
+policy_package:
+  id: POLICY-PACK-REFUND-BEREAVEMENT-001
+  version: 2026.06.17.v1
+  status: approved_for_reference
+  environment: local_runtime
+
+
+  policy_engine_style:
+    reference_runtime: deterministic_python_rules
+    production_patterns:
+      - Open Policy Agent / Rego policy bundle
+      - Cedar / authorization policy style
+      - CI/CD-tested policy package
+      - versioned policy artifact deployed with approval evidence
+
+  change_control:
+    versioning_style: date_based_semver
+    major_change: changes customer outcome, action authority, or escalation path
+    minor_change: adds rule, evidence condition, or handoff reason
+    patch_change: wording, metadata, or non-decision logic
+    required_evidence:
+      - policy_diff
+      - regression_test_results
+      - approval_record
+      - deployment_tag
+      - rollback_plan
+
+  approved_by:
+    policy_owner: Policy Team
+    risk_owner: Conduct and Operational Risk
+    ai_governance_owner: Responsible AI Team
+
+  effective_from: 2026-06-17
+
+  source_documents:
+    - id: POL-REFUND-001
+      file: refund_policy.md
+      version: 1.0
+      sha256_12: 760a1e258eec
+    - id: POL-BEREAVE-001
+      file: bereavement_policy.md
+      version: 1.0
+      sha256_12: ea76f1e6a29e
+    - id: ETH-CUST-001
+      file: ethics_policy.md
+      version: 1.0
+      sha256_12: 22bc8e25c276
+    - id: RULES-REFUND-001
+      file: policy_rules.yaml
+      version: 1.0
+      sha256_12: ac76dc4257cb

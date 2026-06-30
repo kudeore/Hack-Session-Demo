@@ -1,0 +1,31 @@
+services:
+  naive-governed-agent-ui:
+    build: .
+    ports:
+      - "8501:8501"
+    environment:
+      LLM_PROVIDER: gemini
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0}
+      DEPLOYMENT_ENVIRONMENT: local_container
+      SERVICE_NAME: naive-governed-agent-ui
+    volumes:
+      - ./outputs:/app/outputs
+    command: ["streamlit", "run", "src/streamlit_app.py"]
+
+  naive-governed-agent-cli:
+    build: .
+    profiles: ["cli"]
+    environment:
+      LLM_PROVIDER: gemini
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.5-flash}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      LLM_TEMPERATURE: ${LLM_TEMPERATURE:-0}
+      DEPLOYMENT_ENVIRONMENT: local_container
+      SERVICE_NAME: naive-governed-agent-cli
+    volumes:
+      - ./outputs:/app/outputs
+    command: ["python", "src/run_callable_demo.py", "--case-file", "examples_input.json", "--mode", "both"]

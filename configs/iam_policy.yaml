@@ -1,0 +1,89 @@
+iam_policy:
+  id: IAM-AI-REFUND-HARNESS-001
+  version: 2026.06.17.v1
+  default_effect: deny
+
+
+  design_principles:
+    - deny_by_default
+    - named_principal_required
+    - runtime_attested_service_identity
+    - purpose_bound_access
+    - field_level_filtering
+    - audit_every_decision
+    - no_direct_llm_or_agent_access_to_customer_data
+
+  principals:
+    agent:AGENT-REFUND-CASE-MANAGER-001:
+      type: agent_orchestrator
+      allowed_actions: []
+      purpose_binding: []
+      resources: []
+      note: >
+        The agent can plan and call approved skills through the harness, but it
+        cannot directly call customer-data APIs.
+
+    skill:customer_facts_retriever:
+      type: skill_service_account
+      allowed_actions:
+        - customer.read_booking_minimum
+        - customer.read_booking_minimum_by_booking_id
+        - customer.read_relevant_chat_summary
+      purpose_binding:
+        - refund_case_assessment
+      resources:
+        - booking
+        - chat_history
+      note: >
+        This skill is allowed to retrieve only the minimum facts required for
+        refund case assessment, and only when the API gateway/runtime has
+        attested the caller as this skill identity.
+
+  data_contracts:
+    booking.minimum_fields:
+      description: >
+        Minimum booking fields needed by deterministic controls and safe LLM
+        reasoning. Sensitive customer profile fields are deliberately excluded.
+      allowed_fields:
+        - customer_id
+        - booking_id
+        - booking_channel
+        - travel_status
+        - fare_type
+        - payment_method
+        - ticket_amount
+        - refund_amount_estimate
+        - customer_verified
+        - customer_name_match
+      denied_fields:
+        - customer_name
+        - address
+        - email
+        - phone
+        - card_number
+        - full_profile
+
+    chat_history.relevant_summary:
+      description: >
+        Summarised evidence from official-channel logs. The LLM does not receive
+        raw chat transcripts.
+      allowed_fields:
+        - customer_id
+        - booking_id
+        - channel
+        - timestamp
+        - evidence_type
+        - risk_signal
+      denied_fields:
+        - raw_message_unless_case_review
+        - unrelated_chat_history
+        - full_conversation_export
+
+  api_controls:
+    require_principal: true
+    require_runtime_attestation: true
+    require_purpose: true
+    field_level_filtering: true
+    deny_by_default: true
+    audit_every_decision: true
+    no_llm_direct_api_access: true
