@@ -45,3 +45,6 @@ site/
 
 # Streamlit local settings
 .streamlit/secrets.toml
+
+# Local runtime logs
+logs/

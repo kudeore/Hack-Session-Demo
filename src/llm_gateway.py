@@ -2,9 +2,10 @@ from __future__ import annotations
 
 """Central LLM gateway.
 
-This module routes to real model providers by default. Runtime guardrails live
-here so every LLM call, whether it comes from the naive agent or a governed
-skill, passes through the same call budget, cost budget, and kill-switch checks.
+This module routes governed-agent LLM calls to real model providers. Runtime
+guardrails live here so governed skills pass through call budgets, cost budgets,
+and kill-switch checks. The standalone baseline agent intentionally bypasses
+this gateway.
 """
 
 import os
@@ -405,8 +406,8 @@ def _build_real_model(provider: str, model_name: str) -> Any:
 def get_llm() -> GuardedLLM:
     """Return a guarded real LLM client.
 
-    Every caller receives the same gateway wrapper, so call limits, estimated cost
-    limits, and kill switch apply uniformly to Naive and Governed paths.
+    Governed-agent callers receive the same gateway wrapper, so call limits, estimated cost
+    limits, and kill switch apply uniformly inside the governed harness.
     """
 
     provider, model_name = _provider_and_model()

@@ -47,7 +47,7 @@ with st.sidebar:
     api_key = st.text_input("Google / Gemini API key", value=os.getenv("GOOGLE_API_KEY", ""), type="password")
     temperature = st.slider("Temperature", 0.0, 1.0, float(os.getenv("LLM_TEMPERATURE", "0") or 0), 0.1)
     st.divider()
-    st.subheader("Runtime LLM guardrails")
+    st.subheader("Governed Agent runtime LLM guardrails")
     max_llm_calls = st.number_input("Max LLM calls per run", min_value=0, max_value=50, value=int(os.getenv("LLM_MAX_CALLS_PER_RUN", "6") or 6), step=1)
     max_estimated_cost_usd = st.number_input("Max estimated LLM cost per run ($)", min_value=0.0, max_value=10.0, value=float(os.getenv("LLM_MAX_ESTIMATED_COST_USD_PER_RUN", "0.05") or 0.05), step=0.01, format="%.4f")
     llm_kill_switch = st.toggle("LLM kill switch / fail closed", value=os.getenv("LLM_KILL_SWITCH", "").lower() in {"1", "true", "yes", "on", "enabled", "kill", "stop"})
@@ -78,16 +78,17 @@ if run_naive or run_governed or run_both:
                     model=model,
                     api_key=api_key or None,
                     temperature=temperature,
-                    max_llm_calls=int(max_llm_calls),
-                    max_estimated_cost_usd=float(max_estimated_cost_usd),
-                    llm_kill_switch=bool(llm_kill_switch),
+                    # Baseline deliberately does not use the governed LLM guardrail controls.
+                    max_llm_calls=None,
+                    max_estimated_cost_usd=None,
+                    llm_kill_switch=None,
                 )
             st.subheader("Naive Agent output")
             st.write(naive.get("customer_response"))
             with st.expander("Naive Agent pipeline log", expanded=True):
                 st.write("\n".join(naive.get("pipeline_log", [])))
-            with st.expander("Naive Agent LLM guardrails", expanded=True):
-                st.json(naive.get("llm", {}).get("guardrails", {}))
+            with st.expander("Naive Agent LLM call", expanded=True):
+                st.json(naive.get("llm", {}))
             with st.expander("Naive Agent full result", expanded=False):
                 st.json(naive)
 
@@ -99,9 +100,10 @@ if run_naive or run_governed or run_both:
                     model=model,
                     api_key=api_key or None,
                     temperature=temperature,
-                    max_llm_calls=int(max_llm_calls),
-                    max_estimated_cost_usd=float(max_estimated_cost_usd),
-                    llm_kill_switch=bool(llm_kill_switch),
+                    # Baseline deliberately does not use the governed LLM guardrail controls.
+                    max_llm_calls=None,
+                    max_estimated_cost_usd=None,
+                    llm_kill_switch=None,
                 )
             st.subheader("Governed Agent output")
             st.write(governed.get("final_response"))

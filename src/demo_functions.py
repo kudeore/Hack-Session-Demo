@@ -142,10 +142,10 @@ def run_naive_agent(
     """
     Version 1: Naive Agent.
 
-    This uses a real LLM call. It directly fetches full mock booking data, raw
-    chat history, and exposes a tool catalog to the model. No mock fallback is
-    used, because the aim is to observe real model behaviour under a naive
-    agent architecture.
+    This uses a real LLM call. It directly reads the local booking record,
+    prior communication notes, and approved Markdown policy files. No mock
+    fallback is used, because the aim is to observe real model behaviour in a
+    baseline agent architecture without the governed control harness.
     """
 
     case = _normalise_input(input_case)
@@ -156,26 +156,18 @@ def run_naive_agent(
         api_key=api_key,
         temperature=temperature,
     )
-    _require_real_llm(
-        llm_settings,
-        llm_kill_switch=llm_kill_switch,
-        max_llm_calls=max_llm_calls,
-        max_estimated_cost_usd=max_estimated_cost_usd,
-    )
+    _require_real_llm(llm_settings)
 
-    try:
-        from src.naive_agent import run_naive_agent as _run_naive_agent_impl
-    except ModuleNotFoundError as exc:  # Allows running from inside src/ as a script.
-        if exc.name != "src":
-            raise
-        from naive_agent import run_naive_agent as _run_naive_agent_impl
+    from baseline_agent import run_naive_agent as _run_naive_agent_impl
 
-    reset_llm_guardrail_state()
+    # Baseline is intentionally not routed through src.llm_gateway.
+    # max_llm_calls, max_estimated_cost_usd, and llm_kill_switch are governed-agent
+    # controls, so this wrapper does not apply them to the naive/baseline path.
     with _temporary_llm_env(
         **llm_settings,
-        max_llm_calls=max_llm_calls,
-        max_estimated_cost_usd=max_estimated_cost_usd,
-        llm_kill_switch=llm_kill_switch,
+        max_llm_calls=None,
+        max_estimated_cost_usd=None,
+        llm_kill_switch=None,
     ):
         result = _run_naive_agent_impl(
             customer_id=None if case["customer_id"] == "UNKNOWN" else case["customer_id"],
@@ -183,17 +175,24 @@ def run_naive_agent(
             customer_name=case["customer_name"],
             user_message=case["message"],
             requested_action=case["requested_action"],
+            provider=llm_settings["provider"],
+            model=llm_settings["model"],
+            api_key=llm_settings["api_key"],
+            temperature=llm_settings["temperature"],
         )
 
     if not include_prompt_payload:
         result["prompt_payload"] = None
 
     result["llm"] = {
+        **result.get("llm", {}),
         "provider": llm_settings["provider"],
         "model": llm_settings["model"],
         "temperature": llm_settings["temperature"],
-        "actual_llm_called": get_llm_guardrail_state().get("actual_provider_calls", 0) > 0,
-        "guardrails": get_llm_guardrail_state(),
+        "actual_llm_called": True,
+        "guardrail_gateway_used": False,
+        "runtime_guardrails_applied": False,
+        "note": "Baseline agent uses a hardened system prompt and calls the LLM directly from baseline_agent/llm_client.py. src.llm_gateway is not used.",
     }
     result["version"] = "naive_agent"
     return result

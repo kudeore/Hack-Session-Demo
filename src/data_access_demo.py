@@ -113,5 +113,5 @@ def main() -> None:
     print(json.dumps(create_llm_safe_facts(facts), indent=2, ensure_ascii=False))
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()

@@ -14,7 +14,7 @@ sys.path.insert(0, str(ROOT))
 load_dotenv(ROOT / ".env")
 
 from src.graph import run_case
-from src.naive_agent import run_naive_agent
+from baseline_agent import run_naive_agent
 from src.audit import AuditLogger
 from src.llm_gateway import get_llm_guardrail_state, reset_llm_guardrail_state
 
@@ -141,6 +141,10 @@ def main():
             customer_name=args.customer_name,
             user_message=args.message,
             requested_action=args.requested_action,
+            provider=os.getenv("LLM_PROVIDER", "gemini"),
+            model=os.getenv("GEMINI_MODEL"),
+            api_key=os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"),
+            temperature=float(os.getenv("LLM_TEMPERATURE", "0") or 0),
         ), indent=2, ensure_ascii=False))
         print("=" * 100)
 

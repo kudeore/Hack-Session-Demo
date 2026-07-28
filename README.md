@@ -2,10 +2,12 @@
 
 Reference implementation comparing two callable refund-agent paths that accept the same input dictionary:
 
-1. `run_naive_agent(input_dict)` — a first-cut LLM agent with direct mock data access and visible tools.
+1. `run_naive_agent(input_dict)` — a baseline LLM agent with direct booking-data lookup, approved Markdown policy reading, prior communication lookup, a hardened system prompt, and no governed runtime control harness.
 2. `run_governed_agent(input_dict)` — a governed agent using adversarial input guard, IAM skill boundary, minimum-data access, policy-as-code, tool firewall, handoff, output verification, and trace-aware audit.
 
-Both paths route through `src/llm_gateway.py`, which calls a configured model provider by default. Runtime controls are centralised in the gateway: per-run call budget, estimated cost budget, and a fail-closed kill switch.
+The baseline path now lives outside `src/` in `baseline_agent/`. It loads a hardened system prompt from `baseline_agent/system_prompt.md`, calls the LLM directly through `baseline_agent/llm_client.py`, writes simple JSONL/text logs, and does not use the governed LLM gateway.
+
+The governed path continues to route through `src/llm_gateway.py`, where runtime controls are centralised: per-run call budget, estimated cost budget, and a fail-closed kill switch.
 
 ## Install
 
@@ -26,9 +28,11 @@ export LLM_TEMPERATURE=0
 
 You can also pass `api_key=` directly to the Python functions. The included `.env` does not contain a real API key. Copy `.env.example` for local configuration and do not commit secrets.
 
-## Runtime LLM controls
+## Governed runtime LLM controls
 
-Every LLM call goes through `src/llm_gateway.py`. Mock fallback is disabled in the normal runtime path.
+Governed-agent LLM calls go through `src/llm_gateway.py`. Mock fallback is disabled in the normal runtime path.
+
+The baseline agent intentionally bypasses this gateway, so the kill switch and LLM budget controls are not applied to the baseline path. That keeps the demo contrast clear: prompt-level governance versus governed runtime enforcement.
 
 ```bash
 # hard stop before any external provider call
@@ -130,18 +134,32 @@ streamlit run src/streamlit_app.py
 
 The app accepts an input dictionary and runs the Naive Agent, Governed Agent, or both.
 
-## Naive Agent flow
+## Standalone Baseline / Naive Agent folder
+
+The baseline implementation is in:
+
+```text
+baseline_agent/
+  agent.py          # policy/data read + prompt + direct model call
+  system_prompt.md  # hardened prompt-level governance instructions
+  llm_client.py     # simple provider adapter, no src.llm_gateway wrapper
+  logger.py         # local JSONL/text logging
+  README.md
+```
+
+## Baseline / Naive Agent flow
 
 ```text
 input dictionary
-  -> direct full booking lookup by agent
-  -> direct raw chat history lookup by agent
-  -> broad prompt with raw customer data
-  -> tool catalog visible to the LLM
-  -> real model call
-  -> model recommends response and action
-  -> naive executor simulates the selected tool path
-  -> minimal local audit record
+  -> direct booking CSV lookup by agent
+  -> direct prior communication lookup by agent
+  -> approved Markdown policy read
+  -> hardened system prompt loaded from baseline_agent/system_prompt.md
+  -> policy-grounded user prompt built for the LLM
+  -> direct model call through baseline_agent/llm_client.py
+  -> model recommends customer response and next action
+  -> baseline records the recommendation only
+  -> local baseline logs written to logs/baseline_agent.*
 ```
 
 The returned object includes:
@@ -154,9 +172,10 @@ model_raw_output
 model_parsed_output
 customer_response
 model_recommended_action
-model_tool_to_use
-naive_executor_result
+baseline_action_record
+naive_executor_result  # backward-compatible alias
 control_observations
+baseline_logs
 minimal_audit_record
 ```
 
@@ -266,8 +285,8 @@ The local JSONL backend is a reference implementation. For production, the same 
 
 ## Notes
 
-- All customer data is mock data from the local `data/` folder.
+- All demo customer data comes from the local `data/` folder.
 - No real refund, email, booking update, or external business action is executed.
-- The naive executor only simulates the selected tool path based on the model recommendation.
+- The baseline agent records the model recommendation only; no downstream refund/case/email action is executed.
 - Cost is estimated from approximate token counts; configure prices through environment variables for the selected provider and pricing tier.
 - The packaged `.env` contains no real API key. Use `.env.example` to create a local secret file.

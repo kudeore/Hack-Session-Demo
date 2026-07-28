@@ -7,6 +7,8 @@ from src.schemas import SkillResult
 ROOT = Path(__file__).resolve().parents[2]
 POLICY_DIR = ROOT / "policies"
 
+""" In production, this retrieval could absolutely be backed by a vector database. But the vector index must be built only from approved, versioned policy sources. """
+
 
 class PolicyRetrieverSkill:
     name = "policy_retriever"

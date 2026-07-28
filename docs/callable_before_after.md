@@ -21,15 +21,15 @@ governed = run_governed_agent(case, api_key="...")
 The Naive Agent is the realistic first-cut implementation:
 
 ```text
-agent directly fetches full booking data
-agent directly fetches raw chat history
-agent exposes available tools to the LLM
-real LLM recommends response and action
-naive executor simulates the selected tool path
+agent directly reads booking data from CSV
+agent directly reads prior communication history
+agent reads approved Markdown policy files
+real LLM recommends response and next action
+baseline records the recommendation only
 minimal local audit only
 ```
 
-It is useful because even a polite model answer can still reveal architecture risk.
+It is useful because it looks like a credible baseline implementation, while still showing what is missing before the governed control harness is added.
 
 ## Governed Agent
 
